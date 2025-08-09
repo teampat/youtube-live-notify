@@ -2,7 +2,7 @@ import os
 import time
 import json
 import requests
-from datetime import datetime, timedelta, time as dt_time
+from datetime import datetime, timedelta, time as dt_time, timezone
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 CHANNEL_IDS = os.getenv("CHANNEL_IDS", "").split(",")
 CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL"))
 TTL_HOURS = int(os.getenv("TTL_HOURS", 24))
-NOTIFIED_FILE = "notified.json"
+NOTIFIED_FILE = "data/notified.json"
 TH_TIMEZONE = ZoneInfo("Asia/Bangkok")
 
 
@@ -42,10 +42,13 @@ def is_in_active_period():
 
 
 def load_notified_video_ids():
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(NOTIFIED_FILE), exist_ok=True)
+
     if os.path.exists(NOTIFIED_FILE):
         with open(NOTIFIED_FILE, "r") as f:
             data = json.load(f)
-            now = datetime.utcnow()
+            now = datetime.now(timezone.UTC)
             return {
                 vid: ts
                 for vid, ts in data.items()
@@ -55,6 +58,8 @@ def load_notified_video_ids():
 
 
 def save_notified_video_ids(data):
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(NOTIFIED_FILE), exist_ok=True)
     with open(NOTIFIED_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
@@ -102,7 +107,7 @@ def main():
                 for video_id, title, channel_title in live_videos:
                     if video_id not in notified:
                         new_videos.append((video_id, title))
-                        notified[video_id] = datetime.utcnow().isoformat()
+                        notified[video_id] = datetime.now(timezone.UTC).isoformat()
                         updated = True
 
                 if new_videos:

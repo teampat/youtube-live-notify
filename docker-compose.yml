@@ -6,7 +6,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./notified.json:/app/notified.json
+      - ./data:/app/data
     environment:
       - TZ=Asia/Bangkok
     logging:

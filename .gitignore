@@ -175,5 +175,8 @@ Thumbs.db
 # Docker
 .dockerignore
 
-# Check duplicate notifications
+# Project specific - notification state files
 notified.json
+data/notified.json
+# But keep the data directory structure
+!data/.gitkeep
