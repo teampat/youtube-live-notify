@@ -48,7 +48,7 @@ def load_notified_video_ids():
     if os.path.exists(NOTIFIED_FILE):
         with open(NOTIFIED_FILE, "r") as f:
             data = json.load(f)
-            now = datetime.now(timezone.UTC)
+            now = datetime.now(timezone.utc)
             return {
                 vid: ts
                 for vid, ts in data.items()
@@ -107,7 +107,7 @@ def main():
                 for video_id, title, channel_title in live_videos:
                     if video_id not in notified:
                         new_videos.append((video_id, title))
-                        notified[video_id] = datetime.now(timezone.UTC).isoformat()
+                        notified[video_id] = datetime.now(timezone.utc).isoformat()
                         updated = True
 
                 if new_videos:
