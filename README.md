@@ -65,6 +65,32 @@ python main.py
 
 ### Docker Setup
 
+#### Option 1: Docker Compose (Recommended)
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+2. Edit the `.env` file with your actual configuration values
+
+3. Run with Docker Compose:
+```bash
+docker-compose up -d
+```
+
+4. View logs:
+```bash
+docker-compose logs -f
+```
+
+5. Stop the service:
+```bash
+docker-compose down
+```
+
+#### Option 2: Docker Run
+
 1. Build the Docker image:
 ```bash
 docker build -t youtube-live-notify .
@@ -133,7 +159,9 @@ youtube-live-notify/
 ├── main.py              # Main application code
 ├── requirements.txt     # Python dependencies
 ├── Dockerfile          # Docker configuration
+├── docker-compose.yml  # Docker Compose configuration
 ├── .env               # Environment variables (not tracked)
+├── .env.example       # Example environment file
 ├── .gitignore         # Git ignore rules
 ├── notified.json      # Tracks notified streams (auto-generated)
 └── README.md          # This file
