@@ -5,6 +5,7 @@ import requests
 from datetime import datetime, timedelta, time as dt_time, timezone
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
+from urllib.parse import quote
 
 load_dotenv()
 
@@ -29,6 +30,8 @@ def parse_multiple_ranges(raw: str):
 
 WEEKDAY_ACTIVE_TIMES = os.getenv("WEEKDAY_ACTIVE_TIMES")
 WEEKEND_ACTIVE_TIMES = os.getenv("WEEKEND_ACTIVE_TIMES")
+WEEKDAY_SEARCH_QUERY = os.getenv("WEEKDAY_SEARCH_QUERY", "เรื่องเล่าเช้านี้")
+WEEKEND_SEARCH_QUERY = os.getenv("WEEKEND_SEARCH_QUERY", "เรื่องเล่าเสาร์-อาทิตย์")
 WEEKDAY_PERIODS = parse_multiple_ranges(WEEKDAY_ACTIVE_TIMES)
 WEEKEND_PERIODS = parse_multiple_ranges(WEEKEND_ACTIVE_TIMES)
 
@@ -64,10 +67,25 @@ def save_notified_video_ids(data):
         json.dump(data, f, indent=2)
 
 
+def get_search_query():
+    now_th = datetime.now(TH_TIMEZONE)
+    current_day = now_th.weekday()
+
+    # วันจันทร์-ศุกร์ (0-4) ใช้คำค้นหาจาก WEEKDAY_SEARCH_QUERY
+    # วันเสาร์-อาทิตย์ (5-6) ใช้คำค้นหาจาก WEEKEND_SEARCH_QUERY
+    if current_day < 5:  # วันธรรมดา
+        return WEEKDAY_SEARCH_QUERY
+    else:  # วันหยุด
+        return WEEKEND_SEARCH_QUERY
+
+
 def get_live_videos(channel_id):
+    search_query = get_search_query()
+    encoded_query = quote(search_query)
     url = (
         "https://www.googleapis.com/youtube/v3/search?"
-        f"part=snippet&channelId={channel_id}&type=video&eventType=live&maxResults=5&key={YOUTUBE_API_KEY}"
+        f"part=snippet&channelId={channel_id}&type=video&eventType=live&maxResults=5"
+        f"&q={encoded_query}&key={YOUTUBE_API_KEY}"
     )
     response = requests.get(url)
     data = response.json()
@@ -95,6 +113,9 @@ def main():
                 print("⏳ Not in active time period")
                 time.sleep(CHECK_INTERVAL)
                 continue
+
+            search_query = get_search_query()
+            print(f"🔍 ค้นหาด้วยคำว่า: '{search_query}'")
 
             notified = load_notified_video_ids()
             updated = False
