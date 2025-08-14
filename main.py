@@ -32,8 +32,12 @@ WEEKDAY_ACTIVE_TIMES = os.getenv("WEEKDAY_ACTIVE_TIMES")
 WEEKEND_ACTIVE_TIMES = os.getenv("WEEKEND_ACTIVE_TIMES")
 WEEKDAY_SEARCH_QUERY = os.getenv("WEEKDAY_SEARCH_QUERY", "เรื่องเล่าเช้านี้")
 WEEKEND_SEARCH_QUERY = os.getenv("WEEKEND_SEARCH_QUERY", "เรื่องเล่าเสาร์-อาทิตย์")
+
 WEEKDAY_PERIODS = parse_multiple_ranges(WEEKDAY_ACTIVE_TIMES)
 WEEKEND_PERIODS = parse_multiple_ranges(WEEKEND_ACTIVE_TIMES)
+EXCLUDE_KEYWORDS = [
+    kw.strip() for kw in os.getenv("EXCLUDE_KEYWORDS", "").split(",") if kw.strip()
+]
 
 
 def is_in_active_period():
@@ -90,6 +94,10 @@ def get_live_videos(channel_id):
     response = requests.get(url)
     data = response.json()
     items = data.get("items", [])
+
+    def is_excluded(title):
+        return any(ex_kw in title for ex_kw in EXCLUDE_KEYWORDS)
+
     return [
         (
             item["id"]["videoId"],
@@ -97,6 +105,7 @@ def get_live_videos(channel_id):
             item["snippet"]["channelTitle"],
         )
         for item in items
+        if not is_excluded(item["snippet"]["title"])
     ]
 
 
